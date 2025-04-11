@@ -1,0 +1,17 @@
+{
+  "Running": {
+    "description": "Run at least 5km",
+    "created": "2025-04-01",
+    "last_updated": "2025-04-11",
+    "habit_type": "numeric",
+    "goal": 5,
+    "unit": "km",
+    "tags": ["fitness", "cardio"],
+    "streak": { "current": 2, "longest": 5 },
+    "archived": false,
+    "entries": {
+      "2025-04-10": { "value": 3.6 },
+      "2025-04-11": { "value": 5 }
+    }
+  }
+}
