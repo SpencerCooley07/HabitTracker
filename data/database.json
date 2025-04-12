@@ -13,5 +13,20 @@
       "2025-04-10": { "value": 3.6 },
       "2025-04-11": { "value": 5 }
     }
+  },
+  "Sleep": {
+    "description": "Sleep at least 8 hours",
+    "created": "2025-04-04",
+    "last_updated": "2025-04-10",
+    "habit_type": "numeric",
+    "goal": 8,
+    "unit": "hours",
+    "tags": ["fitness", "cardio"],
+    "streak": { "current": 1, "longest": 3 },
+    "archived": false,
+    "entries": {
+      "2025-04-10": { "value": 7.2 },
+      "2025-04-11": { "value": 8.1 }
+    }
   }
 }
