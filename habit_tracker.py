@@ -24,14 +24,7 @@ class Database:
 class Habit:
 	def __init__(self, name: str, description: str, created: str, habit_type: str, goal: float, unit: str, tags: list[str], streak: dict[str, float] = {"current": 0, "longest": 0}, archived: bool = False, entries: list[dict] = []) -> None:
 		"""
-		Habit class to:
-		- Insert entries
-		- Delete entries
-		- Calculate streaks
-		x Update description
-		x Update goal
-		x Update tags
-		x Archive
+		Can insert/delete entries, calculate streaks, update description and goal, add/update tags, and archive
 		"""
 
 		self.name: str = name
@@ -59,8 +52,7 @@ class Habit:
 		if date_today == date and datetime.strptime(date, "%Y-%m-%d").toordinal() - datetime.strptime(self.entries[-2]["date"], "%Y-%m-%d").toordinal() == 1:
 			self.streak["current"] += 1
 			self.streak["longest"] = max(self.streak["current"], self.streak["longest"])
-			return
-		self.update_streak()
+		else: self.update_streak()
 
 	def delete_entry(self, date: str) -> None:
 		for i, entry in enumerate(self.entries):
@@ -80,8 +72,16 @@ class Habit:
 
 		self.streak = {"current": current_streak, "longest": max(current_streak, longest_streak)}
 
-	def update_description(self, new_description):
-		self.description = new_description
+	def update_description(self, new_description: str) -> None: self.description = new_description
+
+	def update_goal(self, new_goal: float) -> None: self.goal = new_goal
+
+	def update_tags(self, new_tags: list[str]) -> None: self.tags = new_tags
+
+	def add_tags(self, new_tags: list[str]) -> None: self.tags += new_tags
+
+	def archive(self) -> None: self.archived = True
+
 
 
 if __name__ == "__main__":
