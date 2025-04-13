@@ -51,6 +51,12 @@ class Habit:
 				return
 		self.entries.append({"date": date, "value": value})
 
+	def delete_entry(self, date: str) -> None:
+		for i, entry in enumerate(self.entries):
+			if entry["date"] == date:
+				self.entries.pop(i)
+				return
+
 
 
 if __name__ == "__main__":
@@ -66,4 +72,6 @@ if __name__ == "__main__":
 	running.add_entry("2025-04-12", 1.3)
 	print(running.entries)
 	running.add_entry("2025-04-11", 1.01)
+	print(running.entries)
+	running.delete_entry("2025-04-13")
 	print(running.entries)
