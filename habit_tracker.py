@@ -33,6 +33,7 @@ class Habit:
 		x Update tags
 		x Archive
 		"""
+
 		self.name: str = name
 		self.description: str = description
 		self.created: str = created
@@ -46,18 +47,15 @@ class Habit:
 
 	def add_entry(self, date: str, value: float) -> None:
 		date_today = datetime.today().strftime("%Y-%m-%d")
+		insert_flag = False
 
 		for i, entry in enumerate(self.entries):
-			if entry["date"] > date:
+			if date < entry["date"]:
 				self.entries.insert(i, {"date": date, "value": value})
-				if date_today == date and datetime.strptime(date, "%Y-%m-%d").toordinal() - datetime.strptime(self.entries[-2]["date"], "%Y-%m-%d").toordinal() == 1:
-					self.streak["current"] += 1
-					self.streak["longest"] = max(self.streak["current"], self.streak["longest"])
-					return
-				self.update_streak()
-				return
+				insert_flag = True
+				break
 
-		self.entries.append({"date": date, "value": value})
+		if not insert_flag: self.entries.append({"date": date, "value": value})
 		if date_today == date and datetime.strptime(date, "%Y-%m-%d").toordinal() - datetime.strptime(self.entries[-2]["date"], "%Y-%m-%d").toordinal() == 1:
 			self.streak["current"] += 1
 			self.streak["longest"] = max(self.streak["current"], self.streak["longest"])
@@ -72,17 +70,18 @@ class Habit:
 
 	def update_streak(self) -> None:
 		dates = [datetime.strptime(entry["date"], "%Y-%m-%d").toordinal() for entry in self.entries]
-		current_streak = 1
-		longest_streak = 1
+		current_streak, longest_streak = 1, 1
+
 		for i in range(1, len(dates)):
-			if dates[i] - dates[i-1] == 1:
-				current_streak += 1
+			if dates[i] - dates[i-1] == 1: current_streak += 1
 			else:
 				longest_streak = max(current_streak, longest_streak)
 				current_streak = 1
 
 		self.streak = {"current": current_streak, "longest": max(current_streak, longest_streak)}
 
+	def update_description(self, new_description):
+		self.description = new_description
 
 
 if __name__ == "__main__":
@@ -92,10 +91,9 @@ if __name__ == "__main__":
 
 	# EXAMPLE HABIT CODE
 	running = Habit("Running", "Run 1km a day", datetime.today().strftime("%Y-%m-%d"), "numeric", 1, "km", ["Health", "Fitness"])
+	running.add_entry("2025-04-12", 2.1)
 	running.add_entry("2025-04-11", 1.01)
 	running.add_entry("2025-04-10", 1.1)
 	running.add_entry("2025-04-09", 2.5)
 	running.add_entry("2025-04-13", 2.27)
-	running.add_entry("2025-04-12", 2.1)
-
 	print(running.streak)
