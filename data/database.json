@@ -15,7 +15,18 @@
       "longest": 0
     },
     "archived": false,
-    "entries": []
+    "entries": [
+      {
+        "date": "2025-04-13",
+        "value": 2.27,
+        "note": ""
+      },
+      {
+        "date": "2025-04-14",
+        "value": 2.56,
+        "note": ""
+      }
+    ]
   },
   "Journal": {
     "description": "Journal every night",
@@ -33,6 +44,12 @@
       "longest": 0
     },
     "archived": false,
-    "entries": []
+    "entries": [
+      {
+        "date": "2025-04-14",
+        "value": true,
+        "note": ""
+      }
+    ]
   }
 }
