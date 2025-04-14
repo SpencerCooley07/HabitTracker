@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from nt import error
 import os
-
+import time
 
 
 class Database:
@@ -82,27 +82,40 @@ class Habit:
 
 	def archive(self) -> None: self.archived = True
 
+	def dict_repr(self) -> dict:
+		return {
+			"description": self.description,
+			"created": self.created,
+			"habit_type": self.habit_type,
+			"goal": self.goal,
+			"unit": self.unit,
+			"tags": self.tags,
+			"streak": self.streak,
+			"archived": self.archived,
+			"entries": self.entries
+		}
+
 class HabitTracker:
 	def __init__(self) -> None:
 		"""
-		- Loads DB and converts to Habit objects
-		- Add habits
-		x Delete habits
-		x Get habit
+		Loads DB and converts to Habit objects, adds habits, deletes habits, gets habits
 		"""
 		self.db = Database("data/database.json")
-		# print(self.db.load_data())
-		self.data = {key: Habit(key, value["description"], value["created"], value["habit_type"], value["goal"], value["unit"], value["tags"], value["streak"], value["archived"], value["entries"]) for key, value in self.db.load_data().items()}
-		# print(self.data)
+		self.data: dict[str, Habit] = {key: Habit(key, value["description"], value["created"], value["habit_type"], value["goal"], value["unit"], value["tags"], value["streak"], value["archived"], value["entries"]) for key, value in self.db.load_data().items()}
 
-	def add_habit(self, name: str, description: str, created: str, habit_type: str, goal: float, unit: str, tags: list[str]):
+	def add_habit(self, name: str, description: str, created: str, habit_type: str, goal: float, unit: str, tags: list[str]) -> None:
 		self.data[name] = Habit(name, description, created, habit_type, goal, unit, tags)
 		self.save_data()
+
+	def delete_habit(self, name: str) -> None:
+		del self.data[name]
+		self.save_data()
+
+	def get_habit(self, name: str) -> Habit: return self.data[name]
 	
-	def save_data(self): self.db.save_data({value.__dict__.pop('name'): value.__dict__ for value in self.data.values()})
-
-
+	def save_data(self): self.db.save_data({habit.name: habit.dict_repr() for habit in self.data.values()})
 
 if __name__ == "__main__":
-	habit_tracker = HabitTracker()
-	habit_tracker.add_habit("Water", "Drink healthy amount of water", "2025-04-2025", "numeric", 2.6, "L", ["Health"])
+	ht = HabitTracker()
+	ht.get_habit("Running").add_entry("2025-04-14", 2.56)
+	ht.save_data()
