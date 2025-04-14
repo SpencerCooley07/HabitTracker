@@ -1,5 +1,5 @@
-from habit_tracker import HabitTracker, Habit
+from habit_tracker import HabitTracker
 
-if __name__ == "__main__":
-	main = HabitTracker()
-	print(HabitTracker().data)
+main = HabitTracker()
+main.add_habit("Running", "Run a kilometre a day", "2025-04-1", "numeric", 1, "km", ["Health", "Fitness", "Cardio"])
+main.add_habit("Journal", "Journal every night", "2025-04-1", "bool", True, None, ["Health", "Fitness", "Cardio"])
