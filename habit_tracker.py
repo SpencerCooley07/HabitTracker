@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 from nt import error
 import os
@@ -82,18 +82,27 @@ class Habit:
 
 	def archive(self) -> None: self.archived = True
 
+class HabitTracker:
+	def __init__(self) -> None:
+		"""
+		- Loads DB and converts to Habit objects
+		- Add habits
+		x Delete habits
+		x Get habit
+		"""
+		self.db = Database("data/database.json")
+		# print(self.db.load_data())
+		self.data = {key: Habit(key, value["description"], value["created"], value["habit_type"], value["goal"], value["unit"], value["tags"], value["streak"], value["archived"], value["entries"]) for key, value in self.db.load_data().items()}
+		# print(self.data)
+
+	def add_habit(self, name: str, description: str, created: str, habit_type: str, goal: float, unit: str, tags: list[str]):
+		self.data[name] = Habit(name, description, created, habit_type, goal, unit, tags)
+		self.save_data()
+	
+	def save_data(self): self.db.save_data({value.__dict__.pop('name'): value.__dict__ for value in self.data.values()})
+
 
 
 if __name__ == "__main__":
-	# EXAMPLE DATABASE CODE
-	# habit_database = Database()
-	# habit_database.save_data(habit_database.load_data())
-
-	# EXAMPLE HABIT CODE
-	running = Habit("Running", "Run 1km a day", datetime.today().strftime("%Y-%m-%d"), "numeric", 1, "km", ["Health", "Fitness"])
-	running.add_entry("2025-04-12", 2.1)
-	running.add_entry("2025-04-11", 1.01)
-	running.add_entry("2025-04-10", 1.1)
-	running.add_entry("2025-04-09", 2.5)
-	running.add_entry("2025-04-13", 2.27)
-	print(running.streak)
+	habit_tracker = HabitTracker()
+	habit_tracker.add_habit("Water", "Drink healthy amount of water", "2025-04-2025", "numeric", 2.6, "L", ["Health"])
