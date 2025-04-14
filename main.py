@@ -1,19 +1,34 @@
 from habit_tracker import HabitTracker
 
-main = HabitTracker()
-main.add_habit("Running", "Run a kilometre a day", "2025-04-1", "numeric", 1, "km", ["Health", "Fitness", "Cardio"])
-main.add_habit("Journal", "Journal every night", "2025-04-1", "bool", True, None, ["Health", "Mental"])
-main.habit_add_entry("Running", "2025-04-09", 3)
-main.habit_add_entry("Running", "2025-04-10", 3)
-main.habit_add_entry("Running", "2025-04-11", 3)
-main.habit_add_entry("Running", "2025-04-13", 2.27)
-main.habit_add_entry("Running", "2025-04-14", 2.56)
-main.habit_add_entry("Journal", "2025-04-14", True)
-main.habit_update_name("Journal", "Workout")
-main.habit_update_description("Workout", "Strength train daily")
-main.habit_del_entry("Workout", "2025-04-14")
-main.habit_update_goal("Workout", 30)
-main.habit_update_unit("Workout", "mins")
-main.habit_del_tags("Workout", "Mental")
-main.habit_add_tags("Workout", ["Fitness"])
-main.habit_add_entry("Workout", "2025-04-14", 30)
+import tkinter
+from tkinter import ttk
+
+import sv_ttk
+import darkdetect
+import pywinstyles, sys
+
+def apply_theme_to_titlebar(root):
+    version = sys.getwindowsversion()
+
+    if version.major == 10 and version.build >= 22000: pywinstyles.change_header_color(root, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+    elif version.major == 10:
+        pywinstyles.apply_style(root, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+        root.wm_attributes("-alpha", 0.99)
+        root.wm_attributes("-alpha", 1)
+
+def toggle_theme(root):
+	sv_ttk.toggle_theme(root)
+	apply_theme_to_titlebar(root)
+
+root = tkinter.Tk()
+
+
+
+button = ttk.Button(root, text="Click me!")
+button.pack()
+
+
+
+sv_ttk.set_theme("dark" if darkdetect.isDark() else "light")
+apply_theme_to_titlebar(root)
+root.mainloop()
