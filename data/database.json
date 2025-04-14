@@ -1,67 +1,32 @@
 {
   "Running": {
-    "description": "Run at least 5km",
-    "created": "2025-04-01",
+    "description": "Run a kilometre a day",
+    "created": "2025-04-1",
     "habit_type": "numeric",
-    "goal": 5,
+    "goal": 1,
     "unit": "km",
     "tags": [
+      "Health",
       "Fitness",
       "Cardio"
     ],
     "streak": {
-      "current": 1,
-      "longest": 2
+      "current": 0,
+      "longest": 0
     },
     "archived": false,
-    "entries": [
-      {
-        "date": "2025-04-10",
-        "value": 3.6
-      },
-      {
-        "date": "2025-04-11",
-        "value": 5
-      },
-      {
-        "date": "2025-04-14",
-        "value": 2.56
-      }
-    ]
+    "entries": []
   },
-  "Sleep": {
-    "description": "Sleep at least 8 hours",
-    "created": "2025-04-04",
-    "habit_type": "numeric",
-    "goal": 8,
-    "unit": "hours",
+  "Journal": {
+    "description": "Journal every night",
+    "created": "2025-04-1",
+    "habit_type": "bool",
+    "goal": true,
+    "unit": null,
     "tags": [
-      "Health"
-    ],
-    "streak": {
-      "current": 1,
-      "longest": 3
-    },
-    "archived": false,
-    "entries": [
-      {
-        "date": "2025-04-10",
-        "value": 7.2
-      },
-      {
-        "date": "2025-04-11",
-        "value": 8.1
-      }
-    ]
-  },
-  "Water": {
-    "description": "Drink healthy amount of water",
-    "created": "2025-04-13",
-    "habit_type": "numeric",
-    "goal": 2.6,
-    "unit": "L",
-    "tags": [
-      "Health"
+      "Health",
+      "Fitness",
+      "Cardio"
     ],
     "streak": {
       "current": 0,
