@@ -118,3 +118,8 @@ class HabitTracker:
 	def habit_toggle_archive(self, name: str) -> None:
 		self.data[name]["archived"] = not self.data[name]["archived"]
 		self.database.save_data(self.data)
+
+	def get_habit_data(self, name: str) -> dict: return self.data[name]
+
+	def get_habit_names(self) -> list:
+		return [name for name in self.data.keys()]
