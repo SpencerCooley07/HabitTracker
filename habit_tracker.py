@@ -49,7 +49,7 @@ class HabitTracker:
 				return
 
 		entries.append({"date": date, "value": value, "note": note})
-		self.database.save_data(self.data)
+		self.habit_update_streak(name)
 
 	def habit_del_entry(self, name: str, date: str) -> None:
 		entries = self.data[name]["entries"]
@@ -58,4 +58,18 @@ class HabitTracker:
 			if date == entry["date"]:
 				del entries[i]
 
+		self.habit_update_streak(name)
+
+	def habit_update_streak(self, name: str) -> None:
+		entries = self.data[name]["entries"]
+		dates = [datetime.strptime(entry["date"], "%Y-%m-%d").toordinal() for entry in entries]
+		current_streak, longest_streak = 1, 1
+
+		for i in range(1, len(dates)):
+			if dates[i] - dates[i-1] == 1: current_streak += 1
+			else:
+				longest_streak = max(current_streak, longest_streak)
+				current_streak = 1
+
+		self.data[name]["streak"] = {"current": current_streak, "longest": max(current_streak, longest_streak)}
 		self.database.save_data(self.data)
