@@ -40,6 +40,13 @@ class HabitApp(tk.Tk):
         self.right_frame.rowconfigure(0, weight=9)
         self.right_frame.rowconfigure(1, weight=1)
 
+        self.b_right_frame = ttk.Frame(self.right_frame)
+        self.b_right_frame.grid(column=0, row=1, sticky="nsew", padx=5, pady=5)
+        self.b_right_frame.columnconfigure(0, weight=4)
+        self.b_right_frame.columnconfigure(1, weight=4)
+        self.b_right_frame.columnconfigure(2, weight=4)
+        self.b_right_frame.columnconfigure(3, weight=1)
+
         self.divider = ttk.Separator(self, orient="vertical") # Create a divider
         self.divider.grid(column=1, row=0, sticky="ns", padx=0, pady=20) # Place in divider column
 
@@ -65,6 +72,10 @@ class HabitApp(tk.Tk):
         self.goal_var = tk.StringVar()
         self.unit_var = tk.StringVar()
         self.tags_var = tk.StringVar()
+
+        self.log_date_var = tk.StringVar()
+        self.log_value_var = tk.StringVar()
+        self.log_note_var = tk.StringVar()
 
         self.init_widgets()
 
@@ -124,6 +135,7 @@ class HabitApp(tk.Tk):
 
 
         # RIGHT PANEL
+        # Entries Table
         self.entries_list = ttk.Treeview(self.right_frame, columns=("date", "value", "note"), show="headings")
         self.entries_scroll = ttk.Scrollbar(self.right_frame, orient="vertical", command=self.entries_list.yview)
 
@@ -137,7 +149,31 @@ class HabitApp(tk.Tk):
         self.entries_list.grid(column=0, row=0, sticky="nsew", padx=5, pady=5)
         self.entries_list.bind("<<TreeviewSelect>>", self.open_entry_editor)
         self.entries_scroll.grid(column=1, row=0, sticky="ns")
-        
+
+        # LOG ENTRY
+        # Date
+        ttk.Label(self.b_right_frame, text="Date (YYYY-MM-DD)").grid(column=0, row=0, sticky="w", padx=10)
+        self.log_date_var.set(datetime.today().strftime("%Y-%m-%d"))
+        self.log_date_entry = ttk.Entry(self.b_right_frame, textvariable=self.log_date_var)
+        self.log_date_entry.grid(column=0, row=1, sticky="ew", padx=10, pady=5)
+        self.log_date_entry.bind("<Return>", self.log_entry)
+
+        # Value
+        ttk.Label(self.b_right_frame, text="Value (Integer or Float)").grid(column=1, row=0, sticky="w", padx=10)
+        self.log_value_entry = ttk.Entry(self.b_right_frame, textvariable=self.log_value_var)
+        self.log_value_entry.grid(column=1, row=1, sticky="ew", padx=10, pady=5)
+        self.log_value_entry.bind("<Return>", self.log_entry)
+
+        # Note
+        ttk.Label(self.b_right_frame, text="Note").grid(column=2, row=0, sticky="w", padx=10)
+        self.log_note_entry = ttk.Entry(self.b_right_frame, textvariable=self.log_note_var)
+        self.log_note_entry.grid(column=2, row=1, sticky="ew", padx=10, pady=5)
+        self.log_note_entry.bind("<Return>", self.log_entry)
+
+        # Log
+        self.log_confirm = ttk.Button(self.b_right_frame, text="LOG", command=self.log_entry)
+        self.log_confirm.grid(column=3, row=1, sticky="ew", padx=10, pady=5)
+
         self.update_dropdown()
 
 
@@ -248,7 +284,7 @@ class HabitApp(tk.Tk):
                 messagebox.showerror("Invalid Value", "Value must be an integer or float.\nE.g. 1, 2.6, 5.7, 9")
                 value_entry.config(textvariable=value_var)
                 return
-            else: new_value = float(new_value) if "." in new_value else int(new_value)
+            else: new_value = float(new_value) if new_value.count(".") == 1 else int(new_value)
             
             self.tracker.habit_update_entry(self.selected_habit.get(), entry_date, new_date, new_value, new_note)
 
@@ -257,6 +293,30 @@ class HabitApp(tk.Tk):
 
         save_btn = ttk.Button(top, text="Save", command=save_entry)
         save_btn.pack(pady=20)
+
+    def log_entry(self, event=None) -> None:
+        date = self.log_date_var.get()
+        value = self.log_value_var.get()
+        note = self.log_note_var.get()
+
+        # Date validation
+        try: datetime.strptime(date, "%Y-%m-%d")
+        except:
+            messagebox.showerror("Invalid Date", "Date must be of format YYYY-MM-DD.")
+            return
+
+        # Value validation
+        if not value:
+            messagebox.showerror("Invalid Value", "Value must be an Integer or FLoat, not of type None.")
+            return
+        elif not value.replace(".", "").isnumeric() or value.count(".") > 1:
+            messagebox.showerror("Invalid Value", "Value must be an Integer or Float.")
+            return
+        else: value = float(value) if value.count(".") == 1 else int(value)
+
+        self.tracker.habit_add_entry(self.selected_habit.get(), date, value, note)
+        self.update_entries()
+
 
     def save(self, event=None) -> None:
         name = self.selected_habit.get()
