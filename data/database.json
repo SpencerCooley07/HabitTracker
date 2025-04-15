@@ -2,7 +2,6 @@
   "Running": {
     "description": "Run a kilometre a day",
     "created": "2025-04-1",
-    "habit_type": "numeric",
     "goal": 1,
     "unit": "km",
     "tags": [
@@ -46,7 +45,6 @@
   "Workout": {
     "description": "Strength train daily",
     "created": "2025-04-1",
-    "habit_type": "numeric",
     "goal": 30,
     "unit": "mins",
     "tags": [

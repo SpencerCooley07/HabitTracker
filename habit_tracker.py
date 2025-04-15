@@ -21,11 +21,10 @@ class HabitTracker:
 		self.database = Database("data/database.json")
 		self.data = self.database.load_data()
 
-	def add_habit(self, name: str, description: str, created: str, goal: int | float | bool, unit: str | None, tags: list[str], streak: dict[str, float] | None = None, archived: bool = False, entries: list[dict] | None = None) -> None:
+	def add_habit(self, name: str, description: str, created: str, goal: int | float, unit: str | None, tags: list[str], streak: dict[str, float] | None = None, archived: bool = False, entries: list[dict] | None = None) -> None:
 		self.data[name] = {
 			"description": description,
 			"created": created,
-			"habit_type": "bool" if (type(goal) == bool) else "numeric",
 			"goal": goal,
 			"unit": unit,
 			"tags": sorted(tags, key=str.lower),
@@ -42,9 +41,6 @@ class HabitTracker:
 
 	def habit_add_entry(self, name: str, date: str, value: int | float | bool, note: str = "") -> None:
 		entries = self.data[name]["entries"]
-
-		if (type(value) == int or float) and (self.data[name]["habit_type"] == "bool"): return
-		if (type(value) == bool) and (self.data[name]["habit_type"] == "numeric"): return
 		
 		for i, entry in enumerate(entries):
 			if date < entry["date"]:
@@ -86,18 +82,8 @@ class HabitTracker:
 		self.data[name]["description"] = new_description
 		self.database.save_data(self.data)
 
-	def habit_update_goal(self, name: str, new_goal: int | float | bool) -> None:
-		old_goal = self.data[name]["goal"]
+	def habit_update_goal(self, name: str, new_goal: int | float) -> None:
 		self.data[name]["goal"] = new_goal
-		if (type(old_goal) == int or float) and (type(new_goal) == bool): self.data[name]["entries"].clear()
-		if (type(old_goal) == bool) and (type(new_goal) == int or float): self.data[name]["entries"].clear()
-
-		if type(new_goal) == bool:
-			self.data[name]["habit_type"] = "bool"
-			self.habit_update_unit(name, None)
-			return
-
-		self.data[name]["habit_type"] = "numeric"
 		self.database.save_data(self.data)
 
 	def habit_update_unit(self, name: str, new_unit: str | None) -> None:
