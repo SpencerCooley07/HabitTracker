@@ -25,7 +25,7 @@ class HabitTracker:
 		self.data[name] = {
 			"description": description,
 			"created": created,
-			"habit_type": "numeric" if (type(goal) == int or float) else "bool",
+			"habit_type": "bool" if (type(goal) == bool) else "numeric",
 			"goal": goal,
 			"unit": unit,
 			"tags": sorted(tags, key=str.lower),
