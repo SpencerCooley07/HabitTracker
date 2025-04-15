@@ -33,6 +33,7 @@ class HabitTracker:
 			"archived": archived,
 			"entries": [] if entries == None else entries
 		}
+		self.data = dict(sorted(self.data.items()))
 		self.database.save_data(self.data)
 
 	def delete_habit(self, name: str) -> None:
@@ -78,6 +79,7 @@ class HabitTracker:
 
 	def habit_update_name(self, name: str, new_name: str) -> None:
 		self.data[new_name] = self.data.pop(name)
+		self.data = dict(sorted(self.data.items()))
 		self.database.save_data(self.data)
 
 	def habit_update_description(self, name: str, new_description: str) -> None:
