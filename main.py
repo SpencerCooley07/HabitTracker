@@ -239,7 +239,7 @@ class HabitApp(tk.Tk):
         entry_date, entry_value, entry_note = self.entries_list.item(selected[0], "values")
 
         top = tk.Toplevel(self)
-        top.title('Entry Editor')
+        top.title(f'{self.selected_habit.get()} Entry Editor ({entry_date})')
         top.iconbitmap("assets/icon.ico")
         top.resizable(0,0)
         top.geometry('400x300')
@@ -291,8 +291,16 @@ class HabitApp(tk.Tk):
             self.update_entries()
             top.destroy()
 
+        def del_entry() -> None:
+            self.tracker.habit_del_entry(self.selected_habit.get(), entry_date)
+            self.update_entries()
+            top.destroy()
+
         save_btn = ttk.Button(top, text="Save", command=save_entry)
-        save_btn.pack(pady=20)
+        save_btn.pack(pady=(20,0))
+
+        del_btn = ttk.Button(top, text="DELETE", command=del_entry)
+        del_btn.pack(pady=(20,0))
 
     def log_entry(self, event=None) -> None:
         date = self.log_date_var.get()
