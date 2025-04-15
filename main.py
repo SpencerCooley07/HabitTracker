@@ -98,7 +98,7 @@ class HabitApp(tk.Tk):
         self.unit_entry.bind("<Return>", self.save)
 
         # Habit Tags
-        ttk.Label(self.left_frame, text="Unit").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Tags").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
         self.tags_entry = ttk.Entry(self.left_frame, textvariable=self.tags_var)
         self.tags_entry.grid(column=0, row=10, sticky="ew", padx=10, pady=5)
         self.tags_entry.bind("<Return>", self.save)
@@ -139,7 +139,7 @@ class HabitApp(tk.Tk):
         self.habit_dropdown["values"] = ["Add Habit"] + habit_names
 
         # Get "first" habit in list if it exists
-        if habit_names and self.selected_habit.get() == "": self.selected_habit.set(habit_names[0])
+        if habit_names and not (self.selected_habit.get() or self.selected_habit.get() in habit_names): self.selected_habit.set(habit_names[0])
         elif not habit_names: self.selected_habit.set("Add Habit")
         self.update_fields()
 
@@ -152,7 +152,7 @@ class HabitApp(tk.Tk):
             self.name_var.set(name)
             self.description_var.set(data["description"])
             self.goal_var.set(data["goal"])
-            self.unit_var.set(data["unit"])
+            self.unit_var.set("" if data["unit"] == None else data["unit"])
             self.tags_var.set(', '.join(data["tags"]))
 
         else: self.clear_fields()
@@ -175,7 +175,12 @@ class HabitApp(tk.Tk):
         unit = self.unit_var.get().strip()
         tags = [tag.strip() for tag in self.tags_var.get().split(',')]
 
-        if name == "Add Habit": self.tracker.add_habit(name, description, datetime.today().strftime("%Y-%m-%d"), goal, unit if unit else None, tags)
+        if name == "Add Habit":
+            self.tracker.add_habit(self.name_var.get().strip(), description, datetime.today().strftime("%Y-%m-%d"), goal, unit if unit else None, tags)
+            messagebox.showinfo("Success", "Habit added successfully!")
+            self.selected_habit.set(self.name_var.get().strip())
+            self.update_dropdown()
+            return
 
         if name != self.name_entry.get().strip():
             if not messagebox.askokcancel("Habit Name Change", "You are changing the name of the habit."):
@@ -183,6 +188,7 @@ class HabitApp(tk.Tk):
                 return
             if self.name_var.get().strip() in self.tracker.get_habit_names():
                 messagebox.showerror("Habit Name Change", "A habit with this name already exists.")
+                self.name_var.set(name)
                 return
 
         self.tracker.habit_update_description(name, description)
@@ -191,6 +197,7 @@ class HabitApp(tk.Tk):
         self.tracker.habit_update_tags(name, tags)
         self.tracker.habit_update_name(name, self.name_var.get().strip()) # Update name last to ensure other updates target correct habit
 
+        messagebox.showinfo("Success", "Habit updated successfully!")
         self.selected_habit.set(self.name_var.get().strip())
         self.update_dropdown()
 
@@ -201,6 +208,7 @@ class HabitApp(tk.Tk):
             if not messagebox.askokcancel("Delete Habit Confirmation", "Are you sure you wish to delete this habit?\nAll data will be lost."):
                 return
             self.tracker.delete_habit(name)
+            self.selected_habit.set(self.tracker.get_habit_names()[0])
             self.update_dropdown()
 
         else:
