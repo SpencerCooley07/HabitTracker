@@ -123,5 +123,6 @@ class HabitTracker:
 
 	def get_habit_data(self, name: str) -> dict: return self.data[name]
 
-	def get_habit_names(self) -> list:
-		return [name for name in self.data.keys()]
+	def get_habit_names(self) -> list: return [name for name in self.data.keys()]
+
+	def get_habit_streak(self, name: str) -> tuple[int, int]: return (self.data[name]["streak"]["current"], self.data[name]["streak"]["longest"])
