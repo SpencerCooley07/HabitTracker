@@ -58,7 +58,6 @@ class HabitApp(tk.Tk):
         sv_ttk.set_theme("dark" if darkdetect.isDark() else "light")
         apply_theme_to_titlebar(self)
 
-
     def toggle_theme_icon(self):
         toggle_theme(self)
         new_theme = sv_ttk.get_theme()
@@ -111,7 +110,21 @@ class HabitApp(tk.Tk):
         self.tags_entry.bind("<Return>", self.save_changes)
 
         self.save_button = ttk.Button(self.left_frame, text="Save Changes", command=self.save_changes)
-        self.save_button.grid(row=11, column=0, padx=10, pady=(20, 10), sticky="w")
+        self.save_button.grid(row=11, column=0, columnspan=2, padx=10, pady=(20, 10), sticky="ew")
+
+        # Streak Counter Frame
+        self.streak_frame = ttk.Frame(self.left_frame)
+        self.streak_frame.grid(row=12, column=0, padx=10, pady=(10, 20), sticky="ew")
+
+        self.streak_current_label = ttk.Label(self.streak_frame, text="Current: 0", anchor="center")
+        self.streak_current_label.grid(row=0, column=0, padx=10, pady=5)
+
+        self.streak_longest_label = ttk.Label(self.streak_frame, text="Longest: 0", anchor="center")
+        self.streak_longest_label.grid(row=1, column=0, padx=10, pady=5)
+
+        # Create a custom style for DELETE button with red text
+        style = ttk.Style()
+        style.configure("DeleteButton.TButton", foreground="red")
 
     def update_unit_entry_state(self, event=None):
         goal_value = self.goal_var.get().strip()
@@ -142,11 +155,18 @@ class HabitApp(tk.Tk):
             data = self.tracker.get_habit_data(name)
             self.name_var.set(name)
             self.description_var.set(data["description"])
-            self.goal_var.set(str(data["goal"]))
+            self.goal_var.set(data["goal"])
             self.unit_var.set("" if data["unit"] is None else data["unit"])
             self.tags_var.set(", ".join(data["tags"]))
             self.save_button.config(text="Save Changes")
             self.update_unit_entry_state()
+
+            # Get the current streak and longest streak
+            current_streak, longest_streak = self.tracker.get_habit_streak(name)
+            
+            # Update the streak counter label with both current and longest streak
+            self.streak_current_label.config(text=f"Current: {current_streak}")
+            self.streak_longest_label.config(text=f"Longest: {longest_streak}")
 
     def save_changes(self, event=None):
         name = self.name_var.get().strip()
@@ -202,12 +222,27 @@ class HabitApp(tk.Tk):
 
         updated_data = self.tracker.get_habit_data(name)
         self.description_var.set(updated_data["description"])
-        self.goal_var.set(str(updated_data["goal"]))
+        self.goal_var.set(updated_data["goal"])
         self.unit_var.set(updated_data["unit"] if updated_data["unit"] else "")
         self.tags_var.set(", ".join(updated_data["tags"]))
         self.update_unit_entry_state(goal)
 
         messagebox.showinfo("Success", "Habit updated successfully!")
+
+    def delete_habit(self):
+        name = self.name_var.get().strip()
+        if not name:
+            messagebox.showerror("Error", "No habit selected to delete.")
+            return
+
+        confirm = messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the habit: '{name}'?")
+        if confirm:
+            self.tracker.delete_habit(name)
+            messagebox.showinfo("Success", f"Habit '{name}' deleted successfully!")
+
+            # Clear fields and update dropdown
+            self.clear_fields()
+            self.populate_dropdown()
 
     def clear_fields(self):
         self.name_var.set("")
