@@ -50,6 +50,22 @@ class HabitApp(tk.Tk):
         sv_ttk.set_theme("dark" if darkdetect.isDark() else "light")
         apply_theme_to_titlebar(self)
 
+        # Theme icons
+        self.moon_icon = tk.PhotoImage(file="assets/moon.png")
+        self.sun_icon = tk.PhotoImage(file="assets/sun.png")
+        self.current_icon = self.moon_icon if sv_ttk.get_theme() == "light" else self.sun_icon
+
+        # Theme toggle button in bottom-left
+        self.theme_button = ttk.Button(self.left_frame, image=self.current_icon, command=self.toggle_theme_icon)
+        self.theme_button.image = self.current_icon  # prevent garbage collection
+        self.theme_button.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)  # Bottom-left with padding
+
+    def toggle_theme_icon(self):
+        toggle_theme(self)
+        new_theme = sv_ttk.get_theme()
+        self.current_icon = self.moon_icon if new_theme == "light" else self.sun_icon
+        self.theme_button.config(image=self.current_icon)
+
     def setup_layout(self):
         self.left_frame = ttk.Frame(self)
         self.left_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
@@ -64,12 +80,11 @@ class HabitApp(tk.Tk):
         self.setup_widgets()
 
     def setup_widgets(self):
-
         # Dropdown to select habit
         self.habit_dropdown = ttk.Combobox(self.left_frame, textvariable=self.selected_habit, state="readonly")
         self.habit_dropdown.bind("<<ComboboxSelected>>", self.update_fields_from_selection)
         self.habit_dropdown.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        
+
         # Habit Name
         ttk.Label(self.left_frame, text="Habit Name:").grid(row=1, column=0, sticky="w", padx=10, pady=(10, 5))
         self.name_entry = ttk.Entry(self.left_frame, textvariable=self.name_var, width=50)
