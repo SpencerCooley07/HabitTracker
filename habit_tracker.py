@@ -39,16 +39,31 @@ class HabitTracker:
 		del self.data[name]
 		self.database.save_data(self.data)
 
-	def habit_add_entry(self, name: str, date: str, value: int | float | bool, note: str = "") -> None:
+	def habit_add_entry(self, name: str, date: str, value: int | float, note: str = "") -> None:
 		entries = self.data[name]["entries"]
 		
 		for i, entry in enumerate(entries):
+			if date == entry["date"]: return
 			if date < entry["date"]:
 				entries.insert(i, {"date": date, "value": value, "note": note})
 				self.habit_update_streak(name)
 				return
 
 		entries.append({"date": date, "value": value, "note": note})
+		entries.reverse()
+		self.habit_update_streak(name)
+
+	def habit_update_entry(self, name: str, date: str, new_date: str = "", new_value: int | float | None = None, new_note: str = "") -> None:
+		entries = self.data[name]["entries"]
+
+		for i, entry in enumerate(entries):
+			if date == entry["date"]:
+				if new_date: entry["date"] = new_date
+				if new_value: entry["value"] = new_value
+				if new_note: entry["note"] = new_note
+				return
+
+		entries.sort(key=lambda entry: entry["date"], reverse=True)
 		self.habit_update_streak(name)
 
 	def habit_del_entry(self, name: str, date: str) -> None:
@@ -62,7 +77,7 @@ class HabitTracker:
 
 	def habit_update_streak(self, name: str) -> None:
 		entries = self.data[name]["entries"]
-		dates = [datetime.strptime(entry["date"], "%Y-%m-%d").toordinal() for entry in entries]
+		dates = [datetime.strptime(entry["date"], "%Y-%m-%d").toordinal() for entry in entries][::-1]
 		current_streak, longest_streak = 1, 1
 		for i in range(1, len(dates)):
 			if dates[i] - dates[i-1] == 1: current_streak += 1
@@ -112,3 +127,10 @@ class HabitTracker:
 	def get_habit_names(self) -> list: return [name for name in self.data.keys()]
 
 	def get_habit_streak(self, name: str) -> tuple[int, int]: return (self.data[name]["streak"]["current"], self.data[name]["streak"]["longest"])
+
+	def get_habit_entries(self, name: str) -> list[dict]: return self.data[name]["entries"]
+
+if __name__ == "__main__":
+	ht = HabitTracker()
+
+	ht.habit_del_entry("Running", "2025-04-15")
