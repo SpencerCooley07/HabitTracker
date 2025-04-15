@@ -1,9 +1,27 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import sys
+
+import darkdetect
+import pywinstyles
 import sv_ttk
+
 from habit_tracker import HabitTracker  # assuming your backend is saved as habit_tracker.py
 
+# MISC FUNCTIONS
+def apply_theme_to_titlebar(root):
+    version = sys.getwindowsversion()
+
+    if version.major == 10 and version.build >= 22000: pywinstyles.change_header_color(root, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+    elif version.major == 10:
+        pywinstyles.apply_style(root, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+        root.wm_attributes("-alpha", 0.99)
+        root.wm_attributes("-alpha", 1)
+
+def toggle_theme(root):
+    sv_ttk.toggle_theme(root)
+    apply_theme_to_titlebar(root)
 
 class HabitApp(tk.Tk):
     def __init__(self):
@@ -21,7 +39,8 @@ class HabitApp(tk.Tk):
         self.setup_widgets()
         self.populate_dropdown()
 
-        sv_ttk.set_theme("light")
+        sv_ttk.set_theme("dark" if darkdetect.isDark() else "light")
+        apply_theme_to_titlebar(self)
 
     def setup_widgets(self):
         # Dropdown to select habit
