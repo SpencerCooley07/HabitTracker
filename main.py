@@ -11,20 +11,6 @@ import sv_ttk
 
 from habit_tracker import HabitTracker
 
-# MISC FUNCTIONS
-def apply_theme_to_titlebar(root):
-    version = sys.getwindowsversion()
-    if version.major == 10 and version.build >= 22000:
-        pywinstyles.change_header_color(root, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
-    elif version.major == 10:
-        pywinstyles.apply_style(root, "dark" if sv_ttk.get_theme() == "dark" else "normal")
-        root.wm_attributes("-alpha", 0.99)
-        root.wm_attributes("-alpha", 1)
-
-def toggle_theme(root):
-    sv_ttk.toggle_theme(root)
-    apply_theme_to_titlebar(root)
-
 # APP
 class HabitApp(tk.Tk):
     def __init__(self, screenName: str | None = None, baseName: str | None = None, className: str = "Tk", useTk: bool = True, sync: bool = False, use: str | None = None) -> None:
@@ -39,36 +25,35 @@ class HabitApp(tk.Tk):
 
 
         # LAYOUT
-        # Initialise 3 columns where the right column is 2x as large as the left (1:2)
-        self.columnconfigure(0, weight=1, minsize=640)
+        self.columnconfigure(0, weight=1, minsize=640) # Initialise left column
         self.columnconfigure(1, weight=0, minsize=5) # Divider column
-        self.columnconfigure(2, weight=2, minsize=1280)
+        self.columnconfigure(2, weight=2, minsize=1280) # Initialise right column (2x left)
         self.rowconfigure(0, weight=1)
 
-        # Inside the left column, set up a ttk Frame
-        self.left_frame = ttk.Frame(self)
+        self.left_frame = ttk.Frame(self) # Inside the left column, set up a ttk Frame
         self.left_frame.grid(column=0, row=0, sticky="nsew", padx=20, pady=20)
         self.left_frame.columnconfigure(0, weight=1)
 
-        # Inside the right column, set up a ttk Frame
-        self.right_frame = ttk.Frame(self)
+        self.right_frame = ttk.Frame(self) # Inside the right column, set up a ttk Frame
         self.right_frame.grid(column=2, row=0, sticky="nsew", padx=20, pady=20)
         self.right_frame.columnconfigure(0, weight=1)
 
-        # Create a divider in the designated Column 1
-        self.divider = ttk.Separator(self, orient="vertical")
-        self.divider.grid(column=1, row=0, sticky="ns", padx=0, pady=20)
-
-
+        self.divider = ttk.Separator(self, orient="vertical") # Create a divider
+        self.divider.grid(column=1, row=0, sticky="ns", padx=0, pady=20) # Place in divider column
 
         # THEME
         sv_ttk.set_theme("dark" if darkdetect.isDark() else "light")
-        apply_theme_to_titlebar(self)
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.build >= 22000:
+            pywinstyles.change_header_color(self, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+        elif version.major == 10:
+            pywinstyles.apply_style(self, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+            self.wm_attributes("-alpha", 0.99)
+            self.wm_attributes("-alpha", 1)
 
         self.light_icon = tk.PhotoImage(file="assets/sun.png")
         self.dark_icon = tk.PhotoImage(file="assets/moon.png")
-
-
+        self.toggle_icon = self.light_icon if sv_ttk.get_theme() == "dark" else self.dark_icon
 
         # VARS
         self.tracker = HabitTracker()
@@ -130,13 +115,32 @@ class HabitApp(tk.Tk):
         self.delete_button.grid(column=0, row=12, sticky="ew", padx=10, pady=5)
         self.delete_button.config(style="Delete.TButton")
 
+        # Theme Toggle
+        self.theme_button = ttk.Button(self.left_frame, image=self.toggle_icon, command=self.theme_toggle)
+        self.theme_button.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)
+
+    def theme_toggle(self) -> None:
+        version = sys.getwindowsversion()
+        sv_ttk.toggle_theme(self)
+        if version.major == 10 and version.build >= 22000:
+            pywinstyles.change_header_color(self, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+        elif version.major == 10:
+            pywinstyles.apply_style(self, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+            self.wm_attributes("-alpha", 0.99)
+            self.wm_attributes("-alpha", 1)
+
+        self.toggle_icon = self.light_icon if sv_ttk.get_theme() == "dark" else self.dark_icon
+        self.theme_button.config(image=self.toggle_icon)
+
+        self.delete_style.configure("Delete.TButton", foreground="red")
+
     def update_dropdown(self) -> None:
         habit_names = self.tracker.get_habit_names()
         self.habit_dropdown["values"] = ["Add Habit"] + habit_names
 
         # Get "first" habit in list if it exists
-        if habit_names: self.selected_habit.set(habit_names[0])
-        else: self.selected_habit.set("Add Habit")
+        if habit_names and self.selected_habit.get() == "": self.selected_habit.set(habit_names[0])
+        elif not habit_names: self.selected_habit.set("Add Habit")
         self.update_fields()
 
     def update_fields(self, event=None) -> None:
@@ -161,24 +165,33 @@ class HabitApp(tk.Tk):
         self.tags_var.set("")
 
     def save(self, event=None) -> None:
-        name = self.selected_habit.get().strip()
+        name = self.selected_habit.get()
         description = self.description_var.get().strip()
         goal = self.goal_var.get().strip()
         if goal.isnumeric(): goal = float(goal) if "." in goal else int(goal)
-        else: messagebox.showerror("Invalid Goal", "Goal must be an integer or float\nE.g. 1, 2.6, 5.7, 9")
+        else:
+            messagebox.showerror("Invalid Goal", "Goal must be an integer or float.\nE.g. 1, 2.6, 5.7, 9")
+            return
         unit = self.unit_var.get().strip()
         tags = [tag.strip() for tag in self.tags_var.get().split(',')]
 
         if name == "Add Habit": self.tracker.add_habit(name, description, datetime.today().strftime("%Y-%m-%d"), goal, unit if unit else None, tags)
 
-        else:
-            self.tracker.habit_update_description(name, description)
-            self.tracker.habit_update_goal(name, goal)
-            self.tracker.habit_update_unit(name, unit)
-            self.tracker.habit_update_tags(name, tags)
-            self.tracker.habit_update_name(name, self.name_var.get())
+        if name != self.name_entry.get().strip():
+            if not messagebox.askokcancel("Habit Name Change", "You are changing the name of the habit."):
+                self.name_var.set(name)
+                return
+            if self.name_var.get().strip() in self.tracker.get_habit_names():
+                messagebox.showerror("Habit Name Change", "A habit with this name already exists.")
+                return
 
-        self.selected_habit.set(name)
+        self.tracker.habit_update_description(name, description)
+        self.tracker.habit_update_goal(name, goal)
+        self.tracker.habit_update_unit(name, unit)
+        self.tracker.habit_update_tags(name, tags)
+        self.tracker.habit_update_name(name, self.name_var.get().strip()) # Update name last to ensure other updates target correct habit
+
+        self.selected_habit.set(self.name_var.get().strip())
         self.update_dropdown()
 
     def delete(self, event=None) -> None:
@@ -193,9 +206,6 @@ class HabitApp(tk.Tk):
         else:
             if not messagebox.askokcancel("Clear Habit Properties", "Are you sure you wish to clear all habit properties?"): return
             self.clear_fields()
-
-
-
 
 if __name__ == "__main__":
     app = HabitApp()
