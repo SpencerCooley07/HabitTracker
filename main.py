@@ -112,15 +112,13 @@ class HabitApp(tk.Tk):
         self.save_button = ttk.Button(self.left_frame, text="Save Changes", command=self.save_changes)
         self.save_button.grid(row=11, column=0, columnspan=2, padx=10, pady=(20, 10), sticky="ew")
 
-        # Streak Counter Frame
-        self.streak_frame = ttk.Frame(self.left_frame)
-        self.streak_frame.grid(row=12, column=0, padx=10, pady=(10, 20), sticky="ew")
+        # DELETE button underneath Save Changes, spanning the entire width with red text
+        self.delete_button = ttk.Button(self.left_frame, text="DELETE", command=self.delete_habit, style="DeleteButton.TButton")
+        self.delete_button.grid(row=12, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
 
-        self.streak_current_label = ttk.Label(self.streak_frame, text="Current: 0", anchor="center")
-        self.streak_current_label.grid(row=0, column=0, padx=10, pady=5)
-
-        self.streak_longest_label = ttk.Label(self.streak_frame, text="Longest: 0", anchor="center")
-        self.streak_longest_label.grid(row=1, column=0, padx=10, pady=5)
+        # Streak Counter underneath the delete button, also spanning the full width
+        self.streak_counter_label = ttk.Label(self.left_frame, text="Streak: 0", font=("Arial", 12))
+        self.streak_counter_label.grid(row=13, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
 
         # Create a custom style for DELETE button with red text
         style = ttk.Style()
@@ -165,8 +163,7 @@ class HabitApp(tk.Tk):
             current_streak, longest_streak = self.tracker.get_habit_streak(name)
             
             # Update the streak counter label with both current and longest streak
-            self.streak_current_label.config(text=f"Current: {current_streak}")
-            self.streak_longest_label.config(text=f"Longest: {longest_streak}")
+            self.streak_counter_label.config(text=f"Streak: {current_streak} (Longest: {longest_streak})")
 
     def save_changes(self, event=None):
         name = self.name_var.get().strip()
