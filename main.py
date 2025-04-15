@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 import sys
+from typing import Collection
 
 import darkdetect
 import pywinstyles
@@ -98,20 +99,30 @@ class HabitApp(tk.Tk):
         self.description_entry.grid(column=0, row=4, sticky="ew", padx=10, pady=5)
 
         # Habit Goal
-        ttk.Label(self.left_frame, text="Description").grid(column=0, row=5, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Goal").grid(column=0, row=5, sticky="w", padx=10, pady=(10,5))
         self.goal_entry = ttk.Entry(self.left_frame, textvariable=self.goal_var)
         self.goal_entry.grid(column=0, row=6, sticky="ew", padx=10, pady=5)
 
+        # Habit Unit
+        ttk.Label(self.left_frame, text="Unit").grid(column=0, row=7, sticky="w", padx=10, pady=(10,5))
+        self.unit_entry = ttk.Entry(self.left_frame, textvariable=self.unit_var)
+        self.unit_entry.grid(column=0, row=8, sticky="ew", padx=10, pady=5)
+
+        # Habit Tags
+        ttk.Label(self.left_frame, text="Unit").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
+        self.tags_entry = ttk.Entry(self.left_frame, textvariable=self.tags_var)
+        self.tags_entry.grid(column=0, row=10, sticky="ew", padx=10, pady=5)
+
         # Save
         self.save_button = ttk.Button(self.left_frame, text="Save Changes")
-        self.save_button.grid(column=0, row=7, sticky="ew", padx=10, pady=(20,5))
+        self.save_button.grid(column=0, row=11, sticky="ew", padx=10, pady=(20,5))
 
         # Delete
         self.delete_style = ttk.Style()
         self.delete_style.configure("Delete.TButton", foreground="red")
 
         self.delete_button = ttk.Button(self.left_frame, text="DELETE HABIT")
-        self.delete_button.grid(column=0, row=8, sticky="ew", padx=10, pady=5)
+        self.delete_button.grid(column=0, row=12, sticky="ew", padx=10, pady=5)
         self.delete_button.config(style="Delete.TButton")
         self.delete_button.bind("<ButtonRelease-1>", self.delete)
 
@@ -133,6 +144,8 @@ class HabitApp(tk.Tk):
             self.name_var.set(name)
             self.description_var.set(data["description"])
             self.goal_var.set(data["goal"])
+            self.unit_var.set(data["unit"])
+            self.tags_var.set(', '.join(data["tags"]))
 
         else: self.clear_fields()
 
