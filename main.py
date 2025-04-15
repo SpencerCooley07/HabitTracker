@@ -92,29 +92,34 @@ class HabitApp(tk.Tk):
         ttk.Label(self.left_frame, text="Habit Name").grid(column=0, row=1, sticky="w", padx=10, pady=(10,5))
         self.name_entry = ttk.Entry(self.left_frame, textvariable=self.name_var)
         self.name_entry.grid(column=0, row=2, sticky="ew", padx=10, pady=5)
+        self.name_entry.bind("<Return>", self.save)
 
         # Habit Description
         ttk.Label(self.left_frame, text="Description").grid(column=0, row=3, sticky="w", padx=10, pady=(10,5))
         self.description_entry = ttk.Entry(self.left_frame, textvariable=self.description_var)
         self.description_entry.grid(column=0, row=4, sticky="ew", padx=10, pady=5)
+        self.description_entry.bind("<Return>", self.save)
 
         # Habit Goal
         ttk.Label(self.left_frame, text="Goal").grid(column=0, row=5, sticky="w", padx=10, pady=(10,5))
         self.goal_entry = ttk.Entry(self.left_frame, textvariable=self.goal_var)
         self.goal_entry.grid(column=0, row=6, sticky="ew", padx=10, pady=5)
+        self.goal_entry.bind("<Return>", self.save)
 
         # Habit Unit
         ttk.Label(self.left_frame, text="Unit").grid(column=0, row=7, sticky="w", padx=10, pady=(10,5))
         self.unit_entry = ttk.Entry(self.left_frame, textvariable=self.unit_var)
         self.unit_entry.grid(column=0, row=8, sticky="ew", padx=10, pady=5)
+        self.unit_entry.bind("<Return>", self.save)
 
         # Habit Tags
         ttk.Label(self.left_frame, text="Unit").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
         self.tags_entry = ttk.Entry(self.left_frame, textvariable=self.tags_var)
         self.tags_entry.grid(column=0, row=10, sticky="ew", padx=10, pady=5)
+        self.tags_entry.bind("<Return>", self.save)
 
         # Save
-        self.save_button = ttk.Button(self.left_frame, text="Save Changes")
+        self.save_button = ttk.Button(self.left_frame, text="Save Changes", command=self.save)
         self.save_button.grid(column=0, row=11, sticky="ew", padx=10, pady=(20,5))
 
         # Delete
@@ -154,6 +159,27 @@ class HabitApp(tk.Tk):
         self.goal_var.set("")
         self.unit_var.set("")
         self.tags_var.set("")
+
+    def save(self, event=None) -> None:
+        name = self.selected_habit.get().strip()
+        description = self.description_var.get().strip()
+        goal = self.goal_var.get().strip()
+        if goal.isnumeric(): goal = float(goal) if "." in goal else int(goal)
+        else: messagebox.showerror("Invalid Goal", "Goal must be an integer or float\nE.g. 1, 2.6, 5.7, 9")
+        unit = self.unit_var.get().strip()
+        tags = [tag.strip() for tag in self.tags_var.get().split(',')]
+
+        if name == "Add Habit": self.tracker.add_habit(name, description, datetime.today().strftime("%Y-%m-%d"), goal, unit if unit else None, tags)
+
+        else:
+            self.tracker.habit_update_description(name, description)
+            self.tracker.habit_update_goal(name, goal)
+            self.tracker.habit_update_unit(name, unit)
+            self.tracker.habit_update_tags(name, tags)
+            self.tracker.habit_update_name(name, self.name_var.get())
+
+        self.selected_habit.set(name)
+        self.update_dropdown()
 
     def delete(self, event=None) -> None:
         name = self.selected_habit.get()
