@@ -45,11 +45,12 @@ class HabitTracker:
 			if date == entry["date"]: return
 			if date < entry["date"]:
 				entries.insert(i, {"date": date, "value": value, "note": note})
+				entries.sort(key=lambda entry: entry["date"], reverse=True)
 				self.habit_update_streak(name)
 				return
 
 		entries.append({"date": date, "value": value, "note": note})
-		entries.reverse()
+		entries.sort(key=lambda entry: entry["date"], reverse=True)
 		self.habit_update_streak(name)
 
 	def habit_update_entry(self, name: str, date: str, new_date: str = "", new_value: int | float | None = None, new_note: str = "") -> None:
