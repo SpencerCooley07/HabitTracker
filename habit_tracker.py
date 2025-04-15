@@ -21,11 +21,11 @@ class HabitTracker:
 		self.database = Database("data/database.json")
 		self.data = self.database.load_data()
 
-	def add_habit(self, name: str, description: str, created: str, habit_type: str, goal: int | float | bool, unit: str | None, tags: list[str], streak: dict[str, float] | None = None, archived: bool = False, entries: list[dict] | None = None) -> None:
+	def add_habit(self, name: str, description: str, created: str, goal: int | float | bool, unit: str | None, tags: list[str], streak: dict[str, float] | None = None, archived: bool = False, entries: list[dict] | None = None) -> None:
 		self.data[name] = {
 			"description": description,
 			"created": created,
-			"habit_type": habit_type,
+			"habit_type": "numeric" if (type(goal) == int or float) else "bool",
 			"goal": goal,
 			"unit": unit,
 			"tags": sorted(tags, key=str.lower),
@@ -102,8 +102,8 @@ class HabitTracker:
 		self.data[name]["unit"] = new_unit
 		self.database.save_data(self.data)
 
-	def habit_update_tags(self, name: str, new_tags: str) -> None:
-		self.data[name]["tags"] = new_tags
+	def habit_update_tags(self, name: str, new_tags: list[str]) -> None:
+		self.data[name]["tags"] = sorted(new_tags, key=str.lower)
 		self.database.save_data(self.data)
 
 	def habit_add_tags(self, name: str, new_tags: list[str]) -> None:
