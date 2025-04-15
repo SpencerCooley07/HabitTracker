@@ -121,10 +121,9 @@ class HabitApp(tk.Tk):
         self.delete_style = ttk.Style()
         self.delete_style.configure("Delete.TButton", foreground="red")
 
-        self.delete_button = ttk.Button(self.left_frame, text="DELETE HABIT")
+        self.delete_button = ttk.Button(self.left_frame, text="DELETE HABIT", command=self.delete)
         self.delete_button.grid(column=0, row=12, sticky="ew", padx=10, pady=5)
         self.delete_button.config(style="Delete.TButton")
-        self.delete_button.bind("<ButtonRelease-1>", self.delete)
 
     def update_dropdown(self) -> None:
         habit_names = self.tracker.get_habit_names()
