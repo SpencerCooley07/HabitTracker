@@ -135,6 +135,7 @@ class HabitApp(tk.Tk):
         self.entries_list.column("note", anchor="center")
         self.entries_list.config(yscrollcommand=self.entries_scroll.set)
         self.entries_list.grid(column=0, row=0, sticky="nsew", padx=5, pady=5)
+        self.entries_list.bind("<<TreeviewSelect>>", self.open_entry_editor)
         self.entries_scroll.grid(column=1, row=0, sticky="ns")
         
         self.update_dropdown()
@@ -164,15 +165,6 @@ class HabitApp(tk.Tk):
         elif not habit_names: self.selected_habit.set("Add Habit")
         self.update_fields()
 
-    def update_entries(self) -> None:
-        name = self.selected_habit.get()
-        entries = self.tracker.get_habit_entries(name)
-
-        self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
-
-        self.entries_list.delete(*self.entries_list.get_children())
-        for i, entry in enumerate(entries): self.entries_list.insert("", "end", values=(entry["date"], entry["value"], entry["note"]))
-
     def update_fields(self, event=None) -> None:
         name = self.selected_habit.get()
 
@@ -186,8 +178,16 @@ class HabitApp(tk.Tk):
             self.tags_var.set(', '.join(data["tags"]))
 
         else: self.clear_fields()
-
         self.update_entries()
+
+    def update_entries(self) -> None:
+        name = self.selected_habit.get()
+        entries = self.tracker.get_habit_entries(name)
+
+        self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
+
+        self.entries_list.delete(*self.entries_list.get_children())
+        for i, entry in enumerate(entries): self.entries_list.insert("", "end", values=(entry["date"], entry["value"], entry["note"]))
 
     def clear_fields(self, event=None) -> None:
         self.name_var.set("")
@@ -196,11 +196,73 @@ class HabitApp(tk.Tk):
         self.unit_var.set("")
         self.tags_var.set("")
 
+    def open_entry_editor(self, event=None) -> None:
+        selected = self.entries_list.selection()
+        if not selected: return
+
+        entry_date, entry_value, entry_note = self.entries_list.item(selected[0], "values")
+
+        top = tk.Toplevel(self)
+        top.title('Entry Editor')
+        top.iconbitmap("assets/icon.ico")
+        top.resizable(0,0)
+        top.geometry('400x300')
+
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.build >= 22000:
+            pywinstyles.change_header_color(top, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+        elif version.major == 10:
+            pywinstyles.apply_style(top, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+            top.wm_attributes("-alpha", 0.99)
+            top.wm_attributes("-alpha", 1)
+
+        # Date
+        ttk.Label(top, text="Date").pack(pady=(10, 0))
+        date_var = tk.StringVar(value=entry_date)
+        date_entry = ttk.Entry(top, textvariable=date_var)
+        date_entry.bind("<Return>", lambda x: save_entry())
+        date_entry.pack()
+
+        # Value
+        ttk.Label(top, text="Value").pack(pady=(10, 0))
+        value_var = tk.StringVar(value=entry_value)
+        value_entry = ttk.Entry(top, textvariable=value_var)
+        value_entry.bind("<Return>", lambda x: save_entry())
+        value_entry.pack()
+
+        # Note
+        ttk.Label(top, text="Note").pack(pady=(10, 0))
+        note_var = tk.StringVar(value=entry_note)
+        note_entry = ttk.Entry(top, textvariable=note_var)
+        note_entry.bind("<Return>", lambda x: save_entry())
+        note_entry.pack()
+
+        # Save
+        def save_entry() -> None:
+            new_date = date_var.get()
+            new_value = value_var.get()
+            new_note = note_var.get()
+
+            if not new_value: new_value = None
+            elif not new_value.replace(".", "").isnumeric() or new_value.count(".") > 1:
+                messagebox.showerror("Invalid Value", "Value must be an integer or float.\nE.g. 1, 2.6, 5.7, 9")
+                value_entry.config(textvariable=value_var)
+                return
+            else: new_value = float(new_value) if "." in new_value else int(new_value)
+            
+            self.tracker.habit_update_entry(self.selected_habit.get(), entry_date, new_date, new_value, new_note)
+
+            self.update_entries()
+            top.destroy()
+
+        save_btn = ttk.Button(top, text="Save", command=save_entry)
+        save_btn.pack(pady=20)
+
     def save(self, event=None) -> None:
         name = self.selected_habit.get()
         description = self.description_var.get().strip()
         goal = self.goal_var.get().strip()
-        if goal.isnumeric(): goal = float(goal) if "." in goal else int(goal)
+        if goal.replace(".", "").isnumeric() and goal.count(".") <= 1: goal = float(goal) if goal.count(".") == 1 else int(goal)
         else:
             messagebox.showerror("Invalid Goal", "Goal must be an integer or float.\nE.g. 1, 2.6, 5.7, 9")
             return
