@@ -3,7 +3,6 @@ import json
 from nt import error
 import os
 
-
 class Database:
 	def __init__(self, filename="data/database.json") -> None:
 		self.filename = filename
@@ -61,17 +60,15 @@ class HabitTracker:
 				if new_date: entry["date"] = new_date
 				if new_value: entry["value"] = new_value
 				if new_note: entry["note"] = new_note
+				entries.sort(key=lambda entry: entry["date"], reverse=True)
+				self.habit_update_streak(name)
 				return
-
-		entries.sort(key=lambda entry: entry["date"], reverse=True)
-		self.habit_update_streak(name)
-
+		
 	def habit_del_entry(self, name: str, date: str) -> None:
 		entries = self.data[name]["entries"]
 
 		for i, entry in enumerate(entries):
-			if date == entry["date"]:
-				del entries[i]
+			if date == entry["date"]: del entries[i]
 
 		self.habit_update_streak(name)
 
