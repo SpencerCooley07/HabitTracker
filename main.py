@@ -19,10 +19,9 @@ class HabitApp(tk.Tk):
         # WINDOW
         # Make a fixed size window
         self.title("Habit Tracker")
+        self.iconbitmap("assets/icon.ico")
         self.resizable(0,0)
         self.geometry("1920x1080")
-
-
 
         # LAYOUT
         self.columnconfigure(0, weight=1, minsize=640) # Initialise left column
@@ -37,6 +36,9 @@ class HabitApp(tk.Tk):
         self.right_frame = ttk.Frame(self) # Inside the right column, set up a ttk Frame
         self.right_frame.grid(column=2, row=0, sticky="nsew", padx=20, pady=20)
         self.right_frame.columnconfigure(0, weight=1)
+        self.right_frame.columnconfigure(1, weight=0, minsize=5) # Scrollbar column
+        self.right_frame.rowconfigure(0, weight=9)
+        self.right_frame.rowconfigure(1, weight=1)
 
         self.divider = ttk.Separator(self, orient="vertical") # Create a divider
         self.divider.grid(column=1, row=0, sticky="ns", padx=0, pady=20) # Place in divider column
@@ -67,11 +69,11 @@ class HabitApp(tk.Tk):
         self.init_widgets()
 
     def init_widgets(self) -> None:
+        # LEFT PANEL
         # Habit Selection
         self.habit_dropdown = ttk.Combobox(self.left_frame, textvariable=self.selected_habit, state="readonly")
         self.habit_dropdown.bind("<<ComboboxSelected>>", self.update_fields)
         self.habit_dropdown.grid(column=0, row=0, padx=10, pady=10, sticky="ew")
-        self.update_dropdown()
         
         # Habit Name
         ttk.Label(self.left_frame, text="Habit Name").grid(column=0, row=1, sticky="w", padx=10, pady=(10,5))
@@ -119,6 +121,25 @@ class HabitApp(tk.Tk):
         self.theme_button = ttk.Button(self.left_frame, image=self.toggle_icon, command=self.theme_toggle)
         self.theme_button.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)
 
+
+
+        # RIGHT PANEL
+        self.entries_list = ttk.Treeview(self.right_frame, columns=("date", "value", "note"), show="headings")
+        self.entries_scroll = ttk.Scrollbar(self.right_frame, orient="vertical", command=self.entries_list.yview)
+
+        self.entries_list.heading("date", text="Date")
+        self.entries_list.heading("value", text="Value")
+        self.entries_list.heading("note", text="Note")
+        self.entries_list.column("date", anchor="center", minwidth=120, stretch=False)
+        self.entries_list.column("value", anchor="center", minwidth=120, stretch=False)
+        self.entries_list.column("note", anchor="center")
+        self.entries_list.config(yscrollcommand=self.entries_scroll.set)
+        self.entries_list.grid(column=0, row=0, sticky="nsew", padx=5, pady=5)
+        self.entries_scroll.grid(column=1, row=0, sticky="ns")
+        
+        self.update_dropdown()
+
+
     def theme_toggle(self) -> None:
         version = sys.getwindowsversion()
         sv_ttk.toggle_theme(self)
@@ -143,6 +164,15 @@ class HabitApp(tk.Tk):
         elif not habit_names: self.selected_habit.set("Add Habit")
         self.update_fields()
 
+    def update_entries(self) -> None:
+        name = self.selected_habit.get()
+        entries = self.tracker.get_habit_entries(name)
+
+        self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
+
+        self.entries_list.delete(*self.entries_list.get_children())
+        for i, entry in enumerate(entries): self.entries_list.insert("", "end", values=(entry["date"], entry["value"], entry["note"]))
+
     def update_fields(self, event=None) -> None:
         name = self.selected_habit.get()
 
@@ -156,6 +186,8 @@ class HabitApp(tk.Tk):
             self.tags_var.set(', '.join(data["tags"]))
 
         else: self.clear_fields()
+
+        self.update_entries()
 
     def clear_fields(self, event=None) -> None:
         self.name_var.set("")
