@@ -326,6 +326,11 @@ class HabitApp(tk.Tk):
             messagebox.showerror("Invalid Date", "Date must be of format YYYY-MM-DD.")
             return
 
+        for entry in self.tracker.get_habit_entries(self.selected_habit.get()):
+            if date == entry["date"]:
+                messagebox.showerror("Entry Clash", "This entry already exists.\nEdit the entry by pressing on it in the entry list.")
+                return
+
         # Value validation
         if not value:
             messagebox.showerror("Invalid Value", "Value must be an Integer or FLoat, not of type None.")
@@ -336,6 +341,12 @@ class HabitApp(tk.Tk):
         else: value = float(value) if value.count(".") == 1 else int(value)
 
         self.tracker.habit_add_entry(self.selected_habit.get(), date, value, note)
+
+        if date != datetime.today().strftime(self.date_format): self.log_date_var.set(datetime.today().strftime(self.date_format))
+        else: self.log_date_var.set("")
+        self.log_value_var.set("")
+        self.log_note_var.set("")
+
         self.update_entries()
 
     def visualise_entries(self, event=None) -> None:
