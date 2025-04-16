@@ -1,15 +1,16 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-from datetime import datetime
+from habit_tracker import HabitTracker
+from datetime import datetime, timedelta
 import sys
-from typing import Collection
+import matplotlib
+import matplotlib.pyplot as plt
+from scipy import interpolate
 
 import darkdetect
 import pywinstyles
 import sv_ttk
-
-from habit_tracker import HabitTracker
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 
 # APP
 class HabitApp(tk.Tk):
@@ -37,11 +38,12 @@ class HabitApp(tk.Tk):
         self.right_frame.grid(column=2, row=0, sticky="nsew", padx=20, pady=20)
         self.right_frame.columnconfigure(0, weight=1)
         self.right_frame.columnconfigure(1, weight=0, minsize=5) # Scrollbar column
-        self.right_frame.rowconfigure(0, weight=9)
-        self.right_frame.rowconfigure(1, weight=1)
+        self.right_frame.rowconfigure(0, weight=1)
+        self.right_frame.rowconfigure(1, weight=8)
+        self.right_frame.rowconfigure(2, weight=1)
 
         self.b_right_frame = ttk.Frame(self.right_frame)
-        self.b_right_frame.grid(column=0, row=1, sticky="nsew", padx=5, pady=5)
+        self.b_right_frame.grid(column=0, row=2, sticky="nsew", padx=5, pady=5)
         self.b_right_frame.columnconfigure(0, weight=4)
         self.b_right_frame.columnconfigure(1, weight=4)
         self.b_right_frame.columnconfigure(2, weight=4)
@@ -65,9 +67,11 @@ class HabitApp(tk.Tk):
         self.toggle_icon = self.light_icon if sv_ttk.get_theme() == "dark" else self.dark_icon
 
         # VARS
+        self.date_format = "%Y-%m-%d"
         self.tracker = HabitTracker()
         self.selected_habit = tk.StringVar()
         self.name_var = tk.StringVar()
+        self.date_created_var = tk.StringVar()
         self.description_var = tk.StringVar()
         self.goal_var = tk.StringVar()
         self.unit_var = tk.StringVar()
@@ -92,40 +96,45 @@ class HabitApp(tk.Tk):
         self.name_entry.grid(column=0, row=2, sticky="ew", padx=10, pady=5)
         self.name_entry.bind("<Return>", self.save)
 
+        # Habit Date Created
+        ttk.Label(self.left_frame, text="Date Created").grid(column=0, row=3, sticky="w", padx=10, pady=(10,5))
+        self.date_created_entry = ttk.Entry(self.left_frame, textvariable=self.date_created_var, state="disabled")
+        self.date_created_entry.grid(column=0, row=4, sticky="ew", padx=10, pady=5)
+
         # Habit Description
-        ttk.Label(self.left_frame, text="Description").grid(column=0, row=3, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Description").grid(column=0, row=5, sticky="w", padx=10, pady=(10,5))
         self.description_entry = ttk.Entry(self.left_frame, textvariable=self.description_var)
-        self.description_entry.grid(column=0, row=4, sticky="ew", padx=10, pady=5)
+        self.description_entry.grid(column=0, row=6, sticky="ew", padx=10, pady=5)
         self.description_entry.bind("<Return>", self.save)
 
         # Habit Goal
-        ttk.Label(self.left_frame, text="Goal").grid(column=0, row=5, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Goal").grid(column=0, row=7, sticky="w", padx=10, pady=(10,5))
         self.goal_entry = ttk.Entry(self.left_frame, textvariable=self.goal_var)
-        self.goal_entry.grid(column=0, row=6, sticky="ew", padx=10, pady=5)
+        self.goal_entry.grid(column=0, row=8, sticky="ew", padx=10, pady=5)
         self.goal_entry.bind("<Return>", self.save)
 
         # Habit Unit
-        ttk.Label(self.left_frame, text="Unit").grid(column=0, row=7, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Unit").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
         self.unit_entry = ttk.Entry(self.left_frame, textvariable=self.unit_var)
-        self.unit_entry.grid(column=0, row=8, sticky="ew", padx=10, pady=5)
+        self.unit_entry.grid(column=0, row=10, sticky="ew", padx=10, pady=5)
         self.unit_entry.bind("<Return>", self.save)
 
         # Habit Tags
-        ttk.Label(self.left_frame, text="Tags").grid(column=0, row=9, sticky="w", padx=10, pady=(10,5))
+        ttk.Label(self.left_frame, text="Tags").grid(column=0, row=11, sticky="w", padx=10, pady=(10,5))
         self.tags_entry = ttk.Entry(self.left_frame, textvariable=self.tags_var)
-        self.tags_entry.grid(column=0, row=10, sticky="ew", padx=10, pady=5)
+        self.tags_entry.grid(column=0, row=12, sticky="ew", padx=10, pady=5)
         self.tags_entry.bind("<Return>", self.save)
 
         # Save
         self.save_button = ttk.Button(self.left_frame, text="Save Changes", command=self.save)
-        self.save_button.grid(column=0, row=11, sticky="ew", padx=10, pady=(20,5))
+        self.save_button.grid(column=0, row=13, sticky="ew", padx=10, pady=(20,5))
 
         # Delete
         self.delete_style = ttk.Style()
         self.delete_style.configure("Delete.TButton", foreground="red")
 
         self.delete_button = ttk.Button(self.left_frame, text="DELETE HABIT", command=self.delete)
-        self.delete_button.grid(column=0, row=12, sticky="ew", padx=10, pady=5)
+        self.delete_button.grid(column=0, row=14, sticky="ew", padx=10, pady=5)
         self.delete_button.config(style="Delete.TButton")
 
         # Theme Toggle
@@ -146,14 +155,14 @@ class HabitApp(tk.Tk):
         self.entries_list.column("value", anchor="center", minwidth=120, stretch=False)
         self.entries_list.column("note", anchor="center")
         self.entries_list.config(yscrollcommand=self.entries_scroll.set)
-        self.entries_list.grid(column=0, row=0, sticky="nsew", padx=5, pady=5)
+        self.entries_list.grid(column=0, row=1, sticky="nsew", padx=5, pady=5)
         self.entries_list.bind("<<TreeviewSelect>>", self.open_entry_editor)
-        self.entries_scroll.grid(column=1, row=0, sticky="ns")
+        self.entries_scroll.grid(column=1, row=1, sticky="ns")
 
         # LOG ENTRY
         # Date
         ttk.Label(self.b_right_frame, text="Date (YYYY-MM-DD)").grid(column=0, row=0, sticky="w", padx=10)
-        self.log_date_var.set(datetime.today().strftime("%Y-%m-%d"))
+        self.log_date_var.set(datetime.today().strftime(self.date_format))
         self.log_date_entry = ttk.Entry(self.b_right_frame, textvariable=self.log_date_var)
         self.log_date_entry.grid(column=0, row=1, sticky="ew", padx=10, pady=5)
         self.log_date_entry.bind("<Return>", self.log_entry)
@@ -208,6 +217,7 @@ class HabitApp(tk.Tk):
             data = self.tracker.get_habit_data(name)
 
             self.name_var.set(name)
+            self.date_created_var.set(data["created"])
             self.description_var.set(data["description"])
             self.goal_var.set(data["goal"])
             self.unit_var.set("" if data["unit"] == None else data["unit"])
@@ -220,17 +230,18 @@ class HabitApp(tk.Tk):
         name = self.selected_habit.get()
         entries = self.tracker.get_habit_entries(name)
 
-        self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
-
         self.entries_list.delete(*self.entries_list.get_children())
+        self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
         for i, entry in enumerate(entries): self.entries_list.insert("", "end", values=(entry["date"], entry["value"], entry["note"]))
 
     def clear_fields(self, event=None) -> None:
         self.name_var.set("")
+        self.date_created_var.set("")
         self.description_var.set("")
         self.goal_var.set("")
         self.unit_var.set("")
         self.tags_var.set("")
+        self.entries_list.delete(*self.entries_list.get_children())
 
     def open_entry_editor(self, event=None) -> None:
         selected = self.entries_list.selection()
@@ -290,6 +301,7 @@ class HabitApp(tk.Tk):
 
             self.update_entries()
             top.destroy()
+            self.visualise_entries(self.selected_habit.get())
 
         def del_entry() -> None:
             self.tracker.habit_del_entry(self.selected_habit.get(), entry_date)
@@ -308,7 +320,7 @@ class HabitApp(tk.Tk):
         note = self.log_note_var.get()
 
         # Date validation
-        try: datetime.strptime(date, "%Y-%m-%d")
+        try: datetime.strptime(date, self.date_format)
         except:
             messagebox.showerror("Invalid Date", "Date must be of format YYYY-MM-DD.")
             return
@@ -325,6 +337,18 @@ class HabitApp(tk.Tk):
         self.tracker.habit_add_entry(self.selected_habit.get(), date, value, note)
         self.update_entries()
 
+    def visualise_entries(self, event=None) -> None:
+        name = self.selected_habit.get()
+        entries = self.tracker.get_habit_entries(name)[::-1]
+
+        entry_dates, entry_values = zip(*[(entry["date"], entry["value"]) for entry in entries])
+        print(entry_dates)
+        print(entry_values)
+
+        plt.title(name)
+        plt.xlabel("Date")
+        plt.ylabel(self.unit_var.get() if self.unit_var.get() else "Value")
+        plt.show()
 
     def save(self, event=None) -> None:
         name = self.selected_habit.get()
@@ -338,7 +362,7 @@ class HabitApp(tk.Tk):
         tags = [tag.strip() for tag in self.tags_var.get().split(',')]
 
         if name == "Add Habit":
-            self.tracker.add_habit(self.name_var.get().strip(), description, datetime.today().strftime("%Y-%m-%d"), goal, unit if unit else None, tags)
+            self.tracker.add_habit(self.name_var.get().strip(), description, datetime.today().strftime(self.date_format), goal, unit if unit else None, tags)
             messagebox.showinfo("Success", "Habit added successfully!")
             self.selected_habit.set(self.name_var.get().strip())
             self.update_dropdown()
