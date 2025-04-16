@@ -1,9 +1,10 @@
 from habit_tracker import HabitTracker
-from datetime import datetime, timedelta
+from datetime import datetime
 import sys
 import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-from scipy import interpolate
+from matplotlib.ticker import MultipleLocator
 
 import darkdetect
 import pywinstyles
@@ -340,14 +341,18 @@ class HabitApp(tk.Tk):
     def visualise_entries(self, event=None) -> None:
         name = self.selected_habit.get()
         entries = self.tracker.get_habit_entries(name)[::-1]
-
         entry_dates, entry_values = zip(*[(entry["date"], entry["value"]) for entry in entries])
-        print(entry_dates)
-        print(entry_values)
 
-        plt.title(name)
-        plt.xlabel("Date")
+        fig, ax = plt.subplots()
+        ax.plot(entry_dates, entry_values)
+        ax.scatter(entry_dates, entry_values)
         plt.ylabel(self.unit_var.get() if self.unit_var.get() else "Value")
+
+        plt.xlabel("Date")
+        ax.xaxis.set_major_locator(MultipleLocator(round(1/len(entry_dates)*200, 0)))
+        ax.xaxis.set_minor_locator(MultipleLocator(round(1/len(entry_dates)*30, 0)))
+        ax.tick_params(axis="x", which='major', rotation=45, labelsize=6)
+
         plt.show()
 
     def save(self, event=None) -> None:
