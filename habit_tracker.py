@@ -75,10 +75,12 @@ class HabitTracker:
 
 	def habit_update_streak(self, name: str) -> None:
 		entries = self.data[name]["entries"]
+		goal = self.data[name]["goal"]
 		dates = [datetime.strptime(entry["date"], "%Y-%m-%d").toordinal() for entry in entries][::-1]
+		values = [entry["value"] for entry in entries][::-1]
 		current_streak, longest_streak = 1, 1
 		for i in range(1, len(dates)):
-			if dates[i] - dates[i-1] == 1: current_streak += 1
+			if (dates[i] - dates[i-1] == 1) and (values[i] >= goal): current_streak += 1
 			else:
 				longest_streak = max(current_streak, longest_streak)
 				current_streak = 1
