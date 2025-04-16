@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import darkdetect
 import pywinstyles
@@ -12,6 +13,14 @@ import sv_ttk
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+
+# Custom Plot Theme
+matplotlib.rcParams["figure.facecolor"] = "#2a2a2a"
+matplotlib.rcParams["axes.facecolor"] = "#1c1c1c"
+matplotlib.rcParams["axes.labelcolor"] = "#57c8ff"
+matplotlib.rcParams["xtick.color"] = "#57c8ff"
+matplotlib.rcParams["ytick.color"] = "#57c8ff"
+matplotlib.rcParams["text.color"] = "#ffffff"
 
 # APP
 class HabitApp(tk.Tk):
@@ -138,9 +147,13 @@ class HabitApp(tk.Tk):
         self.delete_button.grid(column=0, row=14, sticky="ew", padx=10, pady=5)
         self.delete_button.config(style="Delete.TButton")
 
-        # Theme Toggle
-        self.theme_button = ttk.Button(self.left_frame, image=self.toggle_icon, command=self.theme_toggle)
-        self.theme_button.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)
+        # Entries Graph
+        self.fig = plt.figure(1)
+        plt.ion()
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.left_frame)
+        self.plot_widget = self.canvas.get_tk_widget()
+        self.plot_widget.grid(column=0, row=15, sticky="nsew", padx=10, pady=20)
 
 
 
@@ -184,6 +197,11 @@ class HabitApp(tk.Tk):
         self.log_confirm = ttk.Button(self.b_right_frame, text="LOG", command=self.log_entry)
         self.log_confirm.grid(column=3, row=1, sticky="ew", padx=10, pady=5)
 
+        # Theme Toggle
+        self.theme_button = ttk.Button(self.b_right_frame, image=self.toggle_icon, command=self.theme_toggle)
+        self.theme_button.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-10)
+
+        self.protocol("WM_DELETE_WINDOW", self.close_app)
         self.update_dropdown()
 
 
@@ -226,14 +244,33 @@ class HabitApp(tk.Tk):
 
         else: self.clear_fields()
         self.update_entries()
+        self.update_graph()
 
     def update_entries(self) -> None:
         name = self.selected_habit.get()
         entries = self.tracker.get_habit_entries(name)
-
         self.entries_list.delete(*self.entries_list.get_children())
         self.entries_list.heading("value", text=self.unit_var.get() if self.unit_var.get() else "Value")
         for i, entry in enumerate(entries): self.entries_list.insert("", "end", values=(entry["date"], entry["value"], entry["note"]))
+
+    def update_graph(self, event=None) -> None:
+        name = self.selected_habit.get()
+        goal = self.goal_var.get()
+        entries = self.tracker.get_habit_entries(name)[::-1]
+        entry_dates, entry_values = zip(*[(entry["date"], entry["value"]) for entry in entries])
+
+        self.fig.clear()
+        ax = self.fig.add_subplot(111)
+        ax.plot(entry_dates, entry_values)
+        ax.scatter(entry_dates, entry_values)
+        if float(goal) > 0: ax.axhline(float(goal), color="gray", linestyle="--")
+        ax.xaxis.set_major_locator(MultipleLocator(round(1/len(entry_dates)*200, 0)))
+        ax.xaxis.set_minor_locator(MultipleLocator(1))
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.tick_params(axis="x", which='major', rotation=45, labelsize=6)
+        self.fig.subplots_adjust(top=0.95, bottom=0.2, left=0.05, right=0.95)
+        self.canvas.draw()
 
     def clear_fields(self, event=None) -> None:
         self.name_var.set("")
@@ -302,7 +339,6 @@ class HabitApp(tk.Tk):
 
             self.update_entries()
             top.destroy()
-            self.visualise_entries(self.selected_habit.get())
 
         def del_entry() -> None:
             self.tracker.habit_del_entry(self.selected_habit.get(), entry_date)
@@ -348,23 +384,6 @@ class HabitApp(tk.Tk):
         self.log_note_var.set("")
 
         self.update_entries()
-
-    def visualise_entries(self, event=None) -> None:
-        name = self.selected_habit.get()
-        entries = self.tracker.get_habit_entries(name)[::-1]
-        entry_dates, entry_values = zip(*[(entry["date"], entry["value"]) for entry in entries])
-
-        fig, ax = plt.subplots()
-        ax.plot(entry_dates, entry_values)
-        ax.scatter(entry_dates, entry_values)
-        plt.ylabel(self.unit_var.get() if self.unit_var.get() else "Value")
-
-        plt.xlabel("Date")
-        ax.xaxis.set_major_locator(MultipleLocator(round(1/len(entry_dates)*200, 0)))
-        ax.xaxis.set_minor_locator(MultipleLocator(round(1/len(entry_dates)*30, 0)))
-        ax.tick_params(axis="x", which='major', rotation=45, labelsize=6)
-
-        plt.show()
 
     def save(self, event=None) -> None:
         name = self.selected_habit.get()
@@ -416,6 +435,10 @@ class HabitApp(tk.Tk):
         else:
             if not messagebox.askokcancel("Clear Habit Properties", "Are you sure you wish to clear all habit properties?"): return
             self.clear_fields()
+
+    def close_app(self, event=None) -> None:
+        plt.close("all")
+        self.destroy()
 
 if __name__ == "__main__":
     app = HabitApp()
