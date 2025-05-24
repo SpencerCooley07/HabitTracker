@@ -1,9 +1,7 @@
+![GUI example of app showing half dark half light mode](cover.png)
+
 # Python Habit Tracker
-
 Python Habit Tracker is a basic Python project that can log habits and accompanying metadata. 
-
-# Description
-
 This project provides a simple way to:
 - Add/Delete habits
 - Modify habit names, descriptions, goals, and tags
